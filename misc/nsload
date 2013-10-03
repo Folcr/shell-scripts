@@ -1,0 +1,68 @@
+#!/bin/sh 
+#
+# $Id: nsload,v 1.2 1998/04/16 21:18:57 braun Exp $
+#
+# $Log: nsload,v $
+# Revision 1.2  1998/04/16 21:18:57  braun
+# adapted to SuSE 5.2
+#
+# Revision 1.1  1997/10/05 20:43:53  braun
+# Initial revision
+#
+#
+# remote document loader for Netscape
+#
+# Refer to http://home.netscape.com/newsref/std/x-remote.html for detailed description.
+#
+#set -x
+MYNAME=`basename $0`
+#
+EXE=/opt/netscape/netscape
+# test if exe is available 
+if [ ! -x $EXE ]
+then
+    echo "$MYNAME: Warning: $EXE not found!"
+    exit 1
+fi
+#
+USAGE()
+{
+    echo "Usage: $MYNAME [files-to-load]" 
+}
+#
+if [ $# = 0 ]
+then
+    USAGE
+fi
+#
+for i in $*
+do
+	case $i in
+	http*|ftp*)	$EXE -remote "openURL($i)"
+		echo "$MYNAME: remote open of $i ..."
+		;;
+	*)	if [ ! -f $i ]
+		then
+	    		echo "$MYNAME: $i does not exist! :-("
+	    		exit 1
+		fi    
+		DIRNAME=`dirname $i`
+		if [ `basename $i` = $i ]
+		then  
+	    		DOCPATH=`pwd`/`basename $i` # $i has to be a filename in the current working directory
+		else
+	    		DOCPATH=$i	# $i is an absolute pathname for the file
+		fi
+		if [ ! -r $DOCPATH ]
+		then
+	    		echo "$MYNAME: $DOCPATH is not readable. :-("
+	    		exit 2
+		fi
+		echo "$MYNAME: remote open of $DOCPATH ..." 
+		$EXE -remote "openURL(file:${DOCPATH})"
+	
+	esac
+	
+done
+exit 0
+

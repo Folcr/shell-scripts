@@ -1,0 +1,9 @@
+#!/bin/sh
+# start vpfview
+VVHOME=/local/Tools/vpfview/bin
+PATH=$PATH:$VVHOME
+export VVHOME PATH
+#
+vpfview&
+exit 0
+#EOF

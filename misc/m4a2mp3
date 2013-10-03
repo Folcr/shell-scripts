@@ -1,0 +1,18 @@
+#!/bin/bash  
+# 
+# m4a2mp3
+# 
+# Just another way to convert one or more files from AAC/M4A to MP3 format
+# by using faad and lame. This script converts all files in the current folder.
+# 
+ for i in *.m4a
+ do
+   base=`basename "$i" .m4a`
+   faad -o "$base.wav" "$i"
+   wait
+   lame -h -b 192  "$base.wav" "$base.mp3"
+   wait
+   rm "$base.wav"
+ done
+exit 0
+

@@ -1,0 +1,29 @@
+#!/bin/sh 
+# module:         capital
+# version:        1.1
+# last modify:    96/08/13 12:11:57
+#
+# @(#)capital	1.1 96/08/13 12:11:57  , Volker Braun.
+#
+#set -x
+#
+MYNAME=`basename $0`
+#
+    for i in *
+        do
+        	NEWNAME=`echo $i | tr a-z A-Z`
+        	mv $i $NEWNAME
+        	if [ $? = 0 ]
+        	then
+        		echo "$MYNAME: moved $i to $NEWNAME."
+        		if [ -d $NEWNAME ]
+        		then
+        			cd $NEWNAME
+        			$MYNAME &
+        			cd ..
+        		fi
+        	else
+        		echo "$MYNAME: error while moving."
+        	fi
+       done
+exit 0

@@ -1,0 +1,64 @@
+#!/bin/sh
+# module:         start_tef
+# version:        1.8
+# last modify:    95/11/22 11:30:35 Volker Braun
+#
+# @(#)start_tef	1.8 95/11/22 11:30:35   Volker Braun
+#
+# Script zum Starten vom TEF-login (start_login).
+#set -x
+
+HOST=`hostname`
+TEF=/tef
+
+echo
+/usr/5bin/banner "CCAP"
+echo
+echo "Startscript for CCAP Demonstrator on $HOST."
+
+case $HOST in
+	nyx) 		echo "$HOST is normally tefdb (1) or tefap2 (4)";;
+	tartaros) 	echo "$HOST is normally tefcom (2) or tefap1 (3)";;
+	*) 		echo ;;
+esac
+
+echo "Please select the TEFhost to be started by a number (1..4)" 
+echo "(1) tefdb"
+echo "(2) tefcom"
+echo "(3) tefap1"
+echo "(4) tefap2"
+
+echo enter the number and press RETURN
+
+read NUMBER
+
+case $NUMBER in
+    1*) SCRIPT=$TEF/bin/start_db;;
+    2*) SCRIPT=$TEF/bin/start_com;;
+    3*) SCRIPT=$TEF/bin/start_ap1;;
+    4*) SCRIPT=$TEF/bin/start_ap2;;
+    *) echo "$0: unrecognized input: $NUMBER, try again."
+       exit 1;;
+esac
+
+# Applications, which were started in the background
+# should survive the exit of $SCRIPT,
+# which is executed as an overlay of this process.
+# If the login shell is a BOURNE shell,
+# all background procs are killed at the logout,
+# because they receive the HANGUP signal!
+#
+# /etc/passwd:
+# tefstart:92jnKVN/7KDYY:0:1:tef start account:/tef/bin:/tef/bin/start_tef
+#
+# ignore the HANGUP signal (1) 
+
+trap "" 1
+
+# VERY IMPORTANT if Bourne shell scripts are used for login shell,
+# otherwise no background procs will remain after exit of $SCRIPT.
+
+echo starting $SCRIPT ...
+exec $SCRIPT	# start as an overlay of this process, save resources
+
+exit 0

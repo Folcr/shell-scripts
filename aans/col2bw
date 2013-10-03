@@ -1,0 +1,52 @@
+#!/bin/sh
+# module:         col2bw
+# version:        1.2
+# last modify:    96/07/16 14:05:30
+#
+# @(#)col2bw	1.2 96/07/16 14:05:30  , Volker Braun.
+#
+# convert color pictures to monochrom
+# Usage: col2bw [xwd-rasterfiles].
+#
+# '-i' cutoff-intensity is default 61.
+# a good range is between 50 and 80. Check it out.
+#
+MYNAME=`basename $0`
+#
+USAGE()
+{
+    echo "Usage:"
+    echo
+    echo "$MYNAME [xwd-rasterfiles]"
+    echo
+    echo "$MYNAME converts colored [xwd-rasterfiles] to monochrom [xwd-rasterfiles]." 
+    echo "Environment: FMCOLOR"
+    echo "FMCOLOR holds the color-cutoff-intensity e.g.: FMCOLOR=61 (default)."
+    echo
+ 
+    exit 0
+}
+#
+if [ $# = 0 ]
+then
+    USAGE
+fi
+#
+if [ x$FMCOLOR = x ];then
+    FMCOLOR=61
+fi
+#
+for i
+do
+    # show original
+    xwud -in $i &
+    NAME=`basename $i .xwd`.sw.xwd
+    xwd8to1 -i $FMCOLOR $i $NAME
+    
+    # show converted picture to verify the respected cutoff-intensity
+    xwud -in $NAME &
+done
+exit 0
+#
+
+

@@ -1,0 +1,244 @@
+#!/bin/sh
+# module:         tef_application
+# version:        1.20
+# last modify:    95/11/24 15:04:09
+#
+# @(#)tef_application	1.20 95/11/24 15:04:09  
+#
+# Script , welches von der zugangs_steuerung gestartet wird !
+# Es laeuft mit uid und gid des eingeloggten Nutzers / Funktion
+
+#--------------------------------------------------------
+# Mitschreiben des einloggen ( /etc/utmp , /etc/wtmp ?? )
+#
+#set -x
+#
+HOST=`hostname`
+echo HOST:	$HOST
+
+# exported by the zugangssteuerung:
+echo UserID:	$ENV_UID
+echo GroupID:	$ENV_GID
+echo User:	$USER
+#
+
+# kleine Hilfsfunktionen in c (getuid,getgid)
+#UID=`getuid`
+#GID=`getgid`
+
+UID=$ENV_UID
+GID=$ENV_GID
+
+HOME=`echo '$3' == $UID { print '$6' } | awk -F: -f - /etc/passwd`
+#USER=`echo '$3' == $UID { print '$1' } | awk -F: -f - /etc/passwd`
+FUNCTION=`echo '$3' == $GID { print '$1' } | awk -F: -f - /etc/group`
+export USER HOME FUNCTION
+
+# cd in HOME-DIR fuer application
+cd $HOME
+
+# check for the user, if TEF shall be halted (tefhalt:0)
+if [ $USER = tefhalt ]
+then
+    /tef/bin/tef_halt& # temporarily only
+    exit 2 # indicates the shutdown to the zugangssteuerung
+fi
+    
+if [ -f /tef/tmp/tef_app.$HOST.2 ]; then
+	rm /tef/tmp/tef_app.$HOST.2
+fi
+if [ -f /tef/tmp/tef_app.$HOST.1 ]; then
+	mv /tef/tmp/tef_app.$HOST.1 /tef/tmp/tef_app.$HOST.2
+fi
+if [ -f /tef/tmp/tef_app.$HOST ]; then
+	mv /tef/tmp/tef_app.$HOST /tef/tmp/tef_app.$HOST.1
+fi
+exec > /tef/tmp/tef_app.$HOST 2>&1
+
+# expose the selected function in the user interface
+dialogcmd sav lin_all_s_act_role `expr $FUNCTION : 'func_\(.*\)'`
+
+umask 002
+case $FUNCTION in
+        adm)    xterm -sb -g 600x400+100+100 -d :0.1 -xrm '*font: -misc-fixed-medium-r-normal--14-130-75-75-c-70-iso8859-1' & 
+                XTERM_PID=$!
+                xterm -sb -g 600x400+100+100 -T login -xrm '*font: -misc-fixed-medium-r-normal--14-130-75-75-c-70-iso8859-1' -n login -d :0.0 
+                kill -TERM $XTERM_PID
+                exit 0 ;;
+esac
+
+#--------------------------------------------------------
+# Starten aller notwendigen lokalen Hintergrundprozesse
+
+PROCFILE=/var/tmp/TEF_app_PIDS
+rm -f $PROCFILE
+touch $PROCFILE
+
+
+#-----DEBUG---------- musz bei operationeller Taetigkeit raus
+#  
+xterm -iconic -sb -g 72x80+600+100 -T 'DEBUG TERMINAL' -n DEBUG  -xrm '*font: -misc-fixed-medium-r-normal--14-130-75-75-c-70-iso8859-1' & 
+DEBUG_XTERM=$!
+echo $DEBUG_XTERM DEBUG_XTERM >> $PROCFILE
+
+xterm -iconic -sb -T /tef/tmp/tef_app.$HOST -n tef_app -e tail +0lf /tef/tmp/tef_app.$HOST &
+DEBUG_APPLICATION=$!
+echo $DEBUG_APPLICATION DEBUG_APPLICATION >> $PROCFILE
+xterm -iconic -sb -T /tef/tmp/login.start_$TEFHOST.$HOST -n login -e tail +0lf /tef/tmp/login.start_$TEFHOST.$HOST &
+DEBUG_LOGIN=$!
+echo $DEBUG_LOGIN DEBUG_LOGIN >> $PROCFILE
+
+#--------------------------------------------------------
+#- Update von SAM, Sensors and Airbases
+
+init_local_display
+#--------------------------------------------------------
+# Benutzer-/ Funktions-/ Host- abhaengige Prozesse oder Einstellungen
+#
+
+case $USER in
+        *) ;;
+esac
+
+case $FUNCTION in
+        *) ;;
+esac     
+
+case $HOST in
+        *)  ;;
+esac
+
+# check for group dependant resource files 
+if [ -r /tef/lib/group_res/$FUNCTION.funcsel ]
+then
+    dialogcmd sav rechts_resources /tef/lib/group_res/$FUNCTION.funcsel
+else
+    dialogcmd sav rechts_resources /tef/lib/group_res/funcsel.sensitive
+fi
+
+
+# check for host dependant resource files 
+if [ -r /tef/lib/host_res/$HOST.funcsel ]
+then
+    dialogcmd sav rechts_resources /tef/lib/host_res/$HOST.funcsel
+fi
+
+# check for user dependant resource files 
+if [ -r /tef/lib/user_res/$USER.funcsel ]
+then
+    dialogcmd sav rechts_resources /tef/lib/user_res/$USER.funcsel
+fi
+
+#--------------------------------------------------------
+# Starten aller notwendigen Dialogprozesse
+
+l_alarm_verwaltung &
+ALARM_PID=$!
+echo $ALARM_PID ALARM_PID >> $PROCFILE
+
+l_aufz_steuerung &
+LAS_PID=$!
+echo $LAS_PID LAS_PID>> $PROCFILE
+
+update_graphic &
+UPD_GRAP_PID=$!
+echo $UPD_GRAP_PID UPD_GRAP_PID >> $PROCFILE
+
+DRAW_POLYLINE_DEBUG=1
+export DRAW_POLYLINE_DEBUG
+TbcDrawLine &
+DRAWLINE_PID=$!
+echo $DRAWLINE_PID DRAWLINE_PID >> $PROCFILE
+
+tracks_local &
+TRACKS_LOCAL_PID=$!
+echo $TRACKS_LOCAL_PID TRACKS_LOCAL_PID >> $PROCFILE
+
+tce_manager &
+TCE_M_PID=$!
+echo $TCE_M_PID TCE_M_PID >> $PROCFILE
+
+tc_editor &
+TC_E_PID=$!
+echo $TC_E_PID TC_E_PID >> $PROCFILE
+
+ica &
+ICA_PID=$!
+echo $ICA_PID ICA_PID >> $PROCFILE
+
+TOTES_FORCE_STRINGS=NO
+export TOTES_FORCE_STRINGS
+rm -f /tmp/tote_daemon_log
+start_totes > /tmp/tote_daemon_log &
+TOTE_PID=$!
+echo $TOTE_PID TOTE_PID >> $PROCFILE
+
+zones &
+ZONE_PID=$!
+echo $ZONE_PID ZONE_PID >> $PROCFILE
+
+link1_local &
+LINK1_LOCAL_PID=$!
+echo $LINK1_LOCAL_PID LINK1_LOCAL_PID >> $PROCFILE
+ 
+reduction_manager &
+REDUCTION_MANAGER_PID=$!
+echo $REDUCTION_MANAGER_PID REDUCTION_MANAGER_PID >> $PROCFILE
+
+rep_out_file_mgr &
+REP_OUT_FILE_MGR_PID=$!
+echo $REP_OUT_FILE_MGR_PID REP_OUT_FILE_MGR_PID >> $PROCFILE
+
+echo starting EIFEL daemon processes
+DEBUG_IO=3
+export DEBUG_IO
+REMOTE_UID=tefusr1
+export REMOTE_UID
+eifel_daemon &
+EIFEL_PID=$!
+echo $EIFEL_PID EIFEL_PID >> $PROCFILE
+eifel_daemon_copy &
+EIFEL_COPY_PID=$!
+echo $EIFEL_COPY_PID EIFEL_COPY_PID >> $PROCFILE
+
+if [ $TEFHOST = com ]
+then
+    echo starting the LINK1 Replay Simulator for channel 1
+    replay_link1 /tef/lib/LINK1/LINK1_tape_8 /tef/tmp/L1_1_FIFO &
+    REPLAY_LINK1_1=$!
+    echo $REPLAY_LINK1_1 REPLAY_LINK1_1 >> $PROCFILE
+    
+    echo starting the LINK1 Replay Simulator for channel 2
+    replay_link1 /tef/lib/LINK1/LINK1_tape_8 /tef/tmp/L1_2_FIFO &
+    REPLAY_LINK1_2=$!
+    echo $REPLAY_LINK1_2 REPLAY_LINK1_2 >> $PROCFILE
+fi
+
+#--------------------------------------------------------
+# Expose der notwendigen Bildschirmmasken
+
+dialogcmd << _EOF
+savi rechts_show 1
+savi links_show 1
+#wait
+_EOF
+
+#--------------------------------------------------------
+# Warten auf Benutzer-exit
+
+dialogcmd wait
+
+#--------------------------------------------------------
+# Schliessen der Bildschirmmasken
+
+dialogcmd << _EOF
+savi rechts_show 0
+savi links_show 0
+_EOF
+
+#--------------------------------------------------------
+# Beenden aller Kindprozesse
+
+stop_application
+
+exit 0

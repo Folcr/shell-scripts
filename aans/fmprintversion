@@ -1,0 +1,88 @@
+#!/bin/sh
+#
+# $0 copies Variables and conditional Text
+# from Framefile_with_formats --> Framefile
+# and prints the Framefile using fmbatch.
+#
+#
+#set -x
+# Parameter substitution
+Framefile=$1
+Framefile_with_formats=$2
+#
+if [ x$FMHOME = x ]
+then
+    FMHOME=/usr/local/maker3.1
+fi
+#
+FMBATCH="$FMHOME/bin/fmbatch"
+BATCHFILE=batch.$$
+#
+USAGE()
+{
+    echo "Usage:"
+    echo "$0 [Framefile] [Framefile_with_formats]"
+    echo
+    echo "$0 copies Variables and conditional Text" 
+    echo "from [Framefile_with_formats] --> [Framefile]" 
+    echo "and prints the [Framefile]."
+    echo
+    echo "FMHOME has to be set to the respective path,"
+    echo "according to the Version of the [Framefile]."
+    echo "e.g.: FMHOME=/usr/local/maker4.0"
+    echo
+
+    exit 0
+}
+#
+if [ $# != 2 ]
+then
+    USAGE
+fi
+#
+if [ ! -x $FMBATCH ]
+then
+    echo "$0: $FMBATCH not found. :-("
+    exit 1
+fi
+#
+for i in $1 $2
+do
+    if [ ! -r $i ]
+    then
+        echo "$0: $i does not exist or is not readable! :-("
+        exit 1
+    fi
+    # if a document is locked, fmbatch is unable to open it.    
+    if [ -f $i.lck ]
+    then
+        echo "$0: $i is locked ($i.lck exists)! :-("
+        exit 1
+    fi    
+done
+#
+echo "$0: Using $FMBATCH to process $Framefile"
+#
+touch $BATCHFILE
+echo "Open $Framefile" >> $BATCHFILE
+echo "Open $Framefile_with_formats" >> $BATCHFILE
+# Used Formats are <v> Variables and <x> conditional Text
+echo "UseFormatsFrom vx $Framefile $Framefile_with_formats" >> $BATCHFILE
+# update the list of contents according to the selected language
+echo "Update $Framefile" >> $BATCHFILE
+echo "Save $Framefile" >> $BATCHFILE
+# Print with Printoptions selected in Framefile
+echo "Print $Framefile" >> $BATCHFILE
+echo "Quit" >> $BATCHFILE
+#
+echo "$0: Starting fmbatch..."
+echo ""
+# <-v> is the verbose mode of fmbatch: all commands are echoed
+$FMBATCH -v $BATCHFILE
+FMB_RETURN=$?
+echo ""
+echo "$0: ...fmbatch ended with Status: $FMB_RETURN"
+rm -f $BATCHFILE
+#
+exit 0
+

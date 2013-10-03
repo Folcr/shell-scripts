@@ -1,0 +1,57 @@
+#!/bin/sh 
+# module:         fax
+# version:        1.2
+# last modify:    95/12/12 09:09:24
+#
+# @(#)fax	1.2 95/12/12 09:09:24  , Volker Braun.
+#
+#set -x
+#exec >/tmp/$0.$$ 2>&1
+#
+TMPFILE=/tmp/`basename $0`.$$
+FAXNRSTRING=FAXnumber	# the String, which identifies the faxnumber line
+#
+USAGE()
+{
+    echo "Usage:"
+    echo "$0 [PS-file-to-fax] [faxnumber]"
+    echo
+    echo "where [PS-file-to-fax] is the fax in Postscript format and" 
+    echo "[faxnumber] is the phone number of the remote fax station."
+    echo "The user gets a mail reply about the success of the fax job."
+    echo
+    echo "e.g.: $0 faxfile.ps 071186934435"
+    echo
+
+    exit 0
+}
+#
+if [ $# != 2 ]
+then
+    USAGE
+fi
+#
+if [ ! -r $1 ]
+then
+    echo "$0: can't read $1: aborting :-("
+    exit 1
+fi
+#
+MAGIC=` head -1 $1 | cut -c1-2`
+if [ $MAGIC != '%!' ]
+then
+    echo "$0: $1 is not a Postscript file: aborting :-("
+    file $1
+    exit 2
+fi
+#
+echo "$FAXNRSTRING $2" >$TMPFILE
+cat $1 >>$TMPFILE
+#
+echo "$0: sending $1 to fax ($2)."
+/usr/ucb/mail fax <$TMPFILE
+rm -f $TMPFILE
+exit 0
+#EOF
+
+

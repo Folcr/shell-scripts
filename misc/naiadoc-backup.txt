@@ -1,0 +1,180 @@
+X-Mozilla-Status2: 00000000
+Message-ID: <39EC5405.7C4B7B04@de.ANS.Thomson-CSF.com>
+Date: Tue, 17 Oct 2000 14:28:37 +0200
+From: "Volker M. Braun (-34096)" <Vo.Braun@de.ANS.Thomson-CSF.com>
+Organization: Orthogon GmbH
+X-Mailer: Mozilla 4.72 [en] (Win95; I)
+X-Accept-Language: en,de
+MIME-Version: 1.0
+To: Andreas Schnorr <andreas.schnorr@de.ANS.Thomson-CSF.com>, Florence Chomienne <florence.chomienne@de.ANS.Thomson-CSF.com>, Fraser Hillian <fraser.hillian@de.ANS.Thomson-CSF.com>, Stephan Sondermann <stephan.sondermann@de.ANS.Thomson-CSF.com>
+CC: "Olivier Yvon (AATM)" <olivier.yvon@fr.airsysatm.thomson-csf.com>
+Subject: NAIA: IDS: Correspondence Management System (CMS)
+Content-Type: multipart/mixed; boundary="------------0BD90244C9181D253E1785F9"
+
+This is a multi-part message in MIME format.
+--------------0BD90244C9181D253E1785F9
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+ich habe noch schnell ein kleines Script geschrieben, da=DF jeden Freitag=
+ ,
+22:00 die in der Woche angesammelten CMS files zusammenpackt und die NAIA=
+
+CMS Datenbank updated.
+
+Die CSV-Files findet man jeweils unter:
+\\aslsdac\Athen$\NAIA-CMS\backups\
+
+und die eigentliche Datenbank als Textfile im CSV format unter:
+\\aslsdac\Athen$\NAIA-CMS\NAIA-CMS-database.txt
+
+
+Andreas, falls sich etwas in der Konfigurationssektion des Skriptes =E4nd=
+ern
+sollte (User, Passwort, Share, ..), k=F6nntest Du das bitte anpassen? Das=
+
+Script residiert unter sls6x1:/root/bin/naiadoc-backup. Der Job wird in d=
+er
+crontab von root ausgef=FChrt ('crontab -l').
+
+Danke.
+
+
+-- =
+
+Volker M. Braun. phoneto:+49(0)711/821-34096 faxto:-40069
+GSMto:+49(0)174/3028818
+mailto:Vo.Braun@de.ANS.Thomson-CSF.com
+Working for: Airsys Navigation Systems GmbH
+Lorenzstr.10, 70430 Stuttgart
+Internet: http://www.volkerbraun.purespace.de/
+--------------0BD90244C9181D253E1785F9
+Content-Type: text/plain; charset=us-ascii;
+ name="naiadoc-backup.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="naiadoc-backup.txt"
+
+#!/bin/sh
+# $Id: naiadoc-backup,v 1.2 2000/10/17 13:00:04 root Exp $
+# Volker Braun, 17.10.00
+#
+# $Log: naiadoc-backup,v $
+# Revision 1.2  2000/10/17 13:00:04  root
+# forget to remove the weekly txt file.
+#
+# Revision 1.1  2000/10/17 12:54:20  root
+# Initial revision
+#
+#
+#------Configure me--------------------------------------------------
+#
+SERVER="aslsdac"                # GER1 server
+#
+SERVICE="Athen$"                # GER1 share name
+#
+USER="lv01697%stephane7"        # "user%password"
+#
+DIR="NAIA-CMS"                  # path in Athen share
+#
+BACKUP_DIR="NAIA-CMS\\backups"  # path for weekly backups
+#
+DATABASE="NAIA-CMS-database.txt"
+#
+LDIR="/var/spool/naiadoc"       # local spool directory
+#
+CSV_FILES="db_input.csv"        # the name of the csv files
+#
+#------don4t edit below this line------------------------------------
+#
+IDENT=`basename $0`
+#
+error()
+{
+        logger -p user.err -t "${IDENT}[$$]" "error: $*"
+        echo  "${IDENT}[$$]" "error: $*"
+}
+#
+info()
+{
+        logger  -t "${IDENT}[$$]" "$*"
+}
+#
+info "starting job."
+DATE=`date +%Y_%m_%d.%H%M`
+TARBALL="${DATE}-NAIA-CMS-weekly.tgz"
+#
+cd $LDIR
+cat ${CSV_FILES}.* > ${DATE}-NAIA-CMS-weekly.txt
+cat $DATABASE ${DATE}-NAIA-CMS-weekly.txt > ${DATABASE}.new
+cp ${DATABASE}.new ${DATABASE}
+rm -f ${DATE}-NAIA-CMS-weekly.txt
+#
+tar czf ${TARBALL} ${CSV_FILES}.*
+TAR=$?
+#
+if [ "$TAR" != 0 ]
+then
+  error "TAR failed."
+  exit 1
+else
+  rm -f ${CSV_FILES}.*
+fi
+#
+/usr/bin/smbclient "\\\\${SERVER}\\${SERVICE}" -U "$USER" -D "$BACKUP_DIR" \
+ -c "put ${TARBALL}" >/dev/null
+SMB=$?
+if [ "$SMB" != 0 ]
+then
+  error "SMB-put for ${TARBALL} failed."
+  exit 1
+else
+  rm -f ${TARBALL}
+fi
+#
+/usr/bin/smbclient "\\\\${SERVER}\\${SERVICE}" -U "$USER" -D "$DIR" \
+ -c "put ${DATABASE}" >/dev/null
+#
+SMB=$?
+if [ "$SMB" != 0 ]
+then
+  error "SMB-put for ${DATABASE} failed."
+  exit 1
+# never remove database!!!
+fi
+#
+info "end of job."
+exit 0
+#
+#EOF
+
+--------------0BD90244C9181D253E1785F9
+Content-Type: text/x-vcard; charset=us-ascii;
+ name="Vo.Braun.vcf"
+Content-Transfer-Encoding: 7bit
+Content-Description: Card for Volker M. Braun (-34096)
+Content-Disposition: attachment;
+ filename="Vo.Braun.vcf"
+
+begin:vcard 
+n:Braun;Volker
+tel;pager:not available
+tel;cell:+49-174-3028818
+tel;fax:+49-711-78 19 60-21
+tel;home:not available
+tel;work:+49-711-78 19 60-25
+x-mozilla-html:FALSE
+url:http://www.orthogon.de/
+org:Orthogon GmbH;Program Management / Bids and Proposals
+adr:;;Vaihinger Str. 169;Stuttgart;Baden-Wuerttemberg;D-70567;Germany
+version:2.1
+email;internet:Volker.Braun@orthogon.de
+title:Dipl.-Ing.
+x-mozilla-cpt:;-1392
+fn:Braun, Volker
+end:vcard
+
+--------------0BD90244C9181D253E1785F9--
+

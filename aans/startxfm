@@ -1,0 +1,34 @@
+#!/bin/sh
+TEF=tef
+BIGSTAF=bigstaf
+#
+USAGE() 
+{
+    echo "Use the following parameters for starting XFM in the correct environment:"
+    echo "$0 $TEF"
+    echo "$0 $BIGSTAF"
+    # etc...
+    exit 1
+}
+#    
+if [ $# = 0 ]	# number of positional parameters
+then
+    echo "$0: No parameters given."
+    USAGE
+else
+    case $1 in
+        $TEF)		FMFILEPATH=/local/projects/tef/oberflaeche/templates/%F
+                        ;;
+        $BIGSTAF)	FMFILEPATH=/local/projects/bigstaf/oberflaeche/templates/%F
+                        ;;
+        *)		echo "$0: unrecognized parameter: $1"
+                        USAGE
+                        ;;
+     esac
+                    
+    FRAME_TEMPL=/local/Tools/StP/templates/FrameMaker
+    export FMFILEPATH FRAME_TEMPL
+    #
+    /local/projects/toolbox/xfm/tbxfm&
+fi
+exit 0

@@ -1,0 +1,14 @@
+#!/bin/sh
+#
+TMP=/local/audio/tmp/`date +%Y%m%d_%H%M`
+mkdir $TMP
+#
+for i in *mp3
+do
+    #echo "$i"
+	WAV=`basename "$i" .mp3`
+	mpg123 -q -s  "$i" | sox -t sw -c 2 -r 44100 - -t wav "${TMP}/${WAV}.wav" &
+done
+#
+echo "find the output in $TMP."
+#EOF

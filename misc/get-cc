@@ -1,0 +1,78 @@
+#!/bin/sh
+# Volker M. Braun, <volker.m.braun@gmx.de>
+#
+# $Id: get-cc,v 1.3 2002/02/09 11:19:10 braun Exp $
+#
+#
+#
+#set -x
+##########################################
+HTTP_CC_DOWNLOADS="http://www.billiger-telefonieren.de/downloads/cheapcall.php3"
+LOCAL_CC="${HOME}/bin/cheap-call"
+###########################################
+#
+SCRIPT=`basename $0`
+#
+info()
+{
+   logger -t "${SCRIPT}[$$]" $*
+}
+error()
+{
+   logger -p user.err -t "${SCRIPT}[$$]" "ERROR: $*"
+}
+debug()
+{
+   logger -p user.debug -t "${SCRIPT}[$$]" $*
+}
+
+# temporäres Verzeichnis herstellen
+TEMPDIR=$(mktemp -d /var/tmp/${SCRIPT}.XXXXXX)
+cd $TEMPDIR
+#
+# ohne proxy
+# nur dateien mit endungen "tcl.bz2"
+# rekurives holen mit tiefe 1, also nur die im lokaln index.html vermerkten links
+# no clobber: bestehende Dateien nicht überschreiben
+# erstelle keine directories
+# lege verzeichnisse in /var/tmp an.
+wget --quiet  --proxy=off -A tcl.bz2 -r -l 1 -nc -nd \
+	$HTTP_CC_DOWNLOADS
+ret=$?
+if [ "$ret" != 0 ]
+then
+	error "wget failed: exited with: $ret. Terminate [1]."
+	exit 1
+else
+        LATEST_CC=`ls *.tcl.bz2 | tail -1`
+        info "latest cheap-call version: $LATEST_CC."
+fi
+#
+if [ ! -r "$LATEST_CC" ]
+then
+	error "$LATEST_CC is not readable. Terminate [2]."
+	exit 2
+else
+#
+    debug "latest version is: $LATEST_CC."
+    if [ -w  $LOCAL_CC ]
+    then
+        mv $LOCAL_CC ${LOCAL_CC}.old
+    fi
+    bunzip2 -k -c $LATEST_CC >$LOCAL_CC
+    ret=$?
+    if [ "$ret" != 0 ]
+    then
+        error "bunzip2 failed: exited with $ret. Terminate [3]."
+        exit 3
+    else
+        chmod 755 $LOCAL_CC
+        info "extracted new $LOCAL_CC."
+    fi
+fi
+#
+cd
+rm -fr $TEMPDIR
+exit 0
+#
+#EOF

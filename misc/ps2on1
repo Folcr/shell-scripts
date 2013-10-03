@@ -1,0 +1,35 @@
+#!/bin/sh
+#
+# $Id: ps2on1,v 1.1 2000/11/01 16:57:00 braun Exp $
+#
+# $Log: ps2on1,v $
+# Revision 1.1  2000/11/01 16:57:00  braun
+# Initial revision
+#
+#
+#
+#
+FORMAT="2:0L@.7(21cm,0)+1L@.7(21cm,14.85cm)"
+#
+SCRIPT=`basename $0`
+#
+info()
+{
+   logger -s -t "${SCRIPT}[$$]" $1
+}
+error()
+{
+   logger -s -p user.err -t "${SCRIPT}[$$]" "ERROR: $1"
+}
+#
+for i in $*
+do
+	DIRNAME=`dirname $i`
+	BASENAME=`basename $i .ps`
+	echo "converting $i to ${DIRNAME}/${BASENAME}.2on1.ps."
+	pstops $FORMAT $i ${DIRNAME}/${BASENAME}.2on1.ps
+done	
+#
+exit 0
+#
+#EOF

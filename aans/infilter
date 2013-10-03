@@ -1,0 +1,15 @@
+#!/bin/sh 
+# module:         %M%
+# version:        %I%
+# last modify:    %E% %U%
+#
+# %W% %E% %U% %Y% %Q%, Volker Braun.
+#
+TMPFILE=/tmp/`basename $0`.$$ 
+#set -x
+#exec >$TMPFILE 2>&1
+#
+echo "alles klar?"
+touch $TMPFILE 
+tee $TMPFILE
+exit 0

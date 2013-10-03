@@ -1,0 +1,43 @@
+#!/bin/sh
+# Volker M. Braun, <volker.m.braun@gmx.de>
+#
+# $Id: tgeb,v 1.10 2002/05/16 19:10:09 braun Exp braun $
+#
+#
+#
+#set -x
+##########################################
+TGEB_DOWNLOADS="www.billiger-telefonieren.de/downloads/tgeb"
+DOWNLOADS_IN="/var/tmp"
+LOCAL_TGEB="${HOME}/Tgeb"
+###########################################
+#
+SCRIPT=`basename $0`
+#
+info()
+{
+   logger -t "${SCRIPT}[$$]" $*
+}
+error()
+{
+   logger -p user.err -t "${SCRIPT}[$$]" "ERROR: $*"
+}
+debug()
+{
+   logger -p user.debug -t "${SCRIPT}[$$]" $*
+}
+#
+WAN_IP_ADDRESS=`lynx -dump -auth=admin:melinchen -nolist http://automatix/doc/digisdn.sht |grep WAN | gawk -F\  '{print $3}'`
+#
+test "$WAN_IP_ADDRESS" = "---" || debug "WAN IP address: $WAN_IP_ADDRESS."
+test -n "$WAN_IP_ADDRESS" || (error "WAN IP address empty"; exit -1;)
+#
+case $WAN_IP_ADDRESS in
+  ---)  echo "offline"
+        exit 0
+        ;;
+  *)    echo "online"
+        exit 1
+        ;;
+esac
+#EOF

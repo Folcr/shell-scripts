@@ -1,0 +1,20 @@
+#!/bin/sh
+#
+# $Id: cconvert,v 1.1 2001/12/14 09:57:32 braun Exp $
+#
+#set -x
+SUFFIX=".jpg"
+#
+for i in $*
+do
+        UPRIGHT=`basename $i $SUFFIX`_upright${SUFFIX}
+        mv $i $UPRIGHT
+        convert -rotate "270" $UPRIGHT $i
+        if [ "$?" = 0 ]
+        then
+                rm $UPRIGHT
+        else
+                echo "convert was not successful!" >&2
+        fi
+done
+exit 0

@@ -1,0 +1,12 @@
+#!/bin/sh
+# using pbmplus-tools: /local/Tools/pbmplus/
+# convert a SUN rasterfile into a pnm-picture
+# and this pnm-picture into UNIX xwd-picture
+#
+for i
+    do
+        XWDNAME=`basename $i .rf`.xwd
+        /local/Tools/pbmplus/bin/rasttopnm $i | \
+        /local/Tools/pbmplus/bin/pnmtoxwd >$XWDNAME
+    done
+        

@@ -1,0 +1,19 @@
+#! /bin/sh
+# timer : laeszt Minuten verstreichen und gibt anschlieszend Alarm.
+# usage: timer minuten
+#
+usage=" Usage : timer Minuten"
+case $# in
+  1) n=$1 ;;
+  *) echo $usage ; exit 1 ;;
+esac
+s=60
+m=`expr $s \* $n`
+echo "$m Sekunden"
+sleep $m
+echo "$1 Minuten vergangen "
+# lockscreen -n
+# /local/share/SUN.demo/SOUND/play /export/projects/cape/audio/spacemusic.au
+#/local/share/SUN.demo/SOUND/play /local/pub/cape/cape.demo/CAPE/audio/gong.au
+xeyes -g 1100x840+0+0 -fg red
+

@@ -1,0 +1,29 @@
+#!/bin/sh 
+# module:         %M%
+# version:        %I%
+# last modify:    %E% %U%
+#
+# %W% %E% %U% %Y% %Q%, Volker Braun.
+#
+#set -x
+#
+MYNAME=`basename $0`
+#
+    for i in $*
+        do
+        	NEWNAME=`echo $i | tr A-Z a-z`
+        	mv $i $NEWNAME
+        	if [ $? = 0 ]
+        	then
+        		echo "$MYNAME: moved $i to $NEWNAME."
+        		if [ -d $NEWNAME ]
+        		then
+        			cd $NEWNAME
+        			$MYNAME *.html &
+        			cd ..
+        		fi
+        	else
+        		echo "$MYNAME: error while moving."
+        	fi
+       done
+exit 0

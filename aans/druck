@@ -1,0 +1,21 @@
+#!/bin/sh
+# module:         druck
+# version:        1.1
+# last modify:    96/07/18 14:48:27
+#
+# @(#)druck	1.1 96/07/18 14:48:27  , Volker Braun.
+#
+# Dateien mit Header und Footer im Hochformat ausdrucken
+#
+# lpr sends  output  to  the  printer  named  in the 
+# PRINTER  environment  variable,  or  to   the default printer, lp.
+#
+MYNAME=`basename $0`
+#
+for i in $*
+    do
+        echo "$MYNAME: printing $i"
+        cat $i | mp -o -s $i | lpr
+    done
+sleep 2
+lpq	# und anschlieszend die Druckerqueue anzeigen

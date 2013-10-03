@@ -1,0 +1,12 @@
+#!/bin/sh
+# using pbmplus-tools: /local/Tools/pbmplus/
+# convert a GEM img-picture into a pnm-picture
+# and this pnm-picture into UNIX xwd-picture
+#
+for i
+    do
+        XWDNAME=`basename $i .img`.xwd
+        /local/Tools/pbmplus/bin/gemtopbm $i | \
+        /local/Tools/pbmplus/bin/pnmtoxwd >$XWDNAME
+    done
+        

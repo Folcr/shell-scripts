@@ -1,0 +1,44 @@
+#!/bin/sh
+#
+# $Id$
+#
+# $Log$
+#
+#
+#
+LOCATION="/tmp/.IP"
+#
+SCRIPT=`basename $0`
+#
+info()
+{
+   logger -s -t "${SCRIPT}[$$]" $1
+}
+error()
+{
+   logger -s -p user.err -t "${SCRIPT}[$$]" "ERROR: $1"
+}
+#
+cat >$LOCATION  <<__EOL
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <meta name="Author" content="Volker Braun">
+   <meta name="GENERATOR" content="Mozilla/4.5 [en] (X11; U; Linux 2.0.36 i586) [Netscape]">
+__EOL
+#
+echo >> $LOCATION "<meta http-equiv=\"refresh\" content=\"2; URL=http://${1}/\">"
+#
+cat >>$LOCATION <<__EOL
+   <title>Volker Braun - Nikocity Homepage</title>
+</head>
+<body bgcolor="#FFFFFF">
+<h1>In 2 seconds You will be automatically transferred to my real homepage.</h1>
+</body>
+</html>       
+__EOL
+#
+exit 0
+#
+#EOF

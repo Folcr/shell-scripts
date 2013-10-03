@@ -1,0 +1,82 @@
+#!/bin/sh
+# Volker M. Braun, <volker.m.braun@gmx.de>
+#
+# $Id: tgeb,v 1.10 2002/05/16 19:10:09 braun Exp braun $
+#
+#
+#
+#set -x
+##########################################
+TGEB_DOWNLOADS="www.billiger-telefonieren.de/downloads/tgeb"
+DOWNLOADS_IN="/var/tmp"
+LOCAL_TGEB="${HOME}/Tgeb"
+###########################################
+HTTP_TGEB_DOWNLOADS="http://${TGEB_DOWNLOADS}"
+LOCAL_DOWNLOADS="$DOWNLOADS_IN/${TGEB_DOWNLOADS}"
+#
+SCRIPT=`basename $0`
+#
+info()
+{
+   logger -t "${SCRIPT}[$$]" $*
+}
+error()
+{
+   logger -p user.err -t "${SCRIPT}[$$]" "ERROR: $*"
+}
+debug()
+{
+   logger -p user.debug -t "${SCRIPT}[$$]" $*
+}
+# make sure we are in our HOME directory
+#
+cd $HOME
+#
+# produce the filename of today's tgeb data e.g. "daten_20010218.zip"
+# from TGEB version 5.3 on the name has changed to e.g. "tarife_20020515.zip"
+#
+TGEB_DATA="tarife_`date +%Y%m%d`.zip"
+#
+# check if the file has been already downloaded?
+# "-r" FILE exists and is readable
+#
+if [ ! -r $LOCAL_DOWNLOADS/$TGEB_DATA ]
+then
+	wget --proxy=off --quiet --force-directories \
+		--directory-prefix=$DOWNLOADS_IN \
+		$HTTP_TGEB_DOWNLOADS/$TGEB_DATA
+	ret=$?
+	if [ "$ret" != 0 ]
+	then
+		error "wget failed: exited with: $ret. Terminate [1]."
+		exit 1
+	else
+		debug "fetched $HTTP_TGEB_DOWNLOADS/$TGEB_DATA."
+	fi
+else
+	debug "$LOCAL_DOWNLOADS/$TGEB_DATA already locally existing."
+fi	
+#
+# check if FILE exists and has a size greater than zero
+#
+if [ ! -s $LOCAL_DOWNLOADS/$TGEB_DATA ]
+then
+	error "$LOCAL_DOWNLOADS/$TGEB_DATA does not exist. Terminate [2]."
+	exit 2
+else
+	# -o  overwrite files WITHOUT prompting
+	#
+	unzip -qq -o $LOCAL_DOWNLOADS/$TGEB_DATA -d $LOCAL_TGEB
+	ret=$?
+	if [ "$ret" != 0 ]
+	then
+		error "unzip failed: exited with $ret. Terminate [3]."
+		exit 3
+	else
+		info "extracted $LOCAL_DOWNLOADS/$TGEB_DATA into $LOCAL_TGEB."
+	fi
+fi
+#
+exit 0
+#
+#EOF

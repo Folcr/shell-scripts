@@ -1,0 +1,67 @@
+#!/bin/sh
+# module:         stop_login
+# version:        1.10
+# last modify:    95/11/22 11:46:43
+#
+# @(#)stop_login	1.10 95/11/22 11:46:43  
+#
+# Script zum Stoppen der TEF-Oberflaeche
+#
+#
+PROCFILE=/var/tmp/TEF_login_PIDS
+PROCFILE_DB=/var/tmp/TEF_db_login_PIDS # tefdb may be also another tefhost
+TMP_PROCS=/var/tmp/procs.$$
+TMP_PS=/tmp/ps.$$
+
+DISPLAY=unix:0.0
+DIALOGDISPLAY=localhost
+export DISPLAY DIALOGDISPLAY
+# kill Framemaker/viewer in the background
+/tef/bin/stop_frame.sh&
+
+# kill all TEF application processes (if necessary)
+/tef/bin/stop_application
+
+if [ -f $PROCFILE ]
+then
+    # try to find these processes, which forked
+    ps -ax > $TMP_PS
+    grep zugangs_steuerung $TMP_PS | grep -v grep >> $PROCFILE
+    grep dialogcmd $TMP_PS |  grep -v grep >> $PROCFILE
+    grep diserv $TMP_PS |  grep -v grep >> $PROCFILE
+    grep dialogserver $TMP_PS |  grep -v grep >> $PROCFILE
+    grep xconsole $TMP_PS | grep -v grep >> $PROCFILE
+    grep X/bin/X $TMP_PS | grep -v grep >> $PROCFILE
+    grep C3I $TMP_PS | grep -v grep >> $PROCFILE
+    rm -f $TMP_PS
+    
+    sort $PROCFILE | uniq > $TMP_PROCS
+    while read PID rest
+    do
+        kill -TERM $PID
+        echo "terminate $PID ($rest)"
+    done < $TMP_PROCS
+    
+    rm -f $PROCFILE
+    rm -f $TMP_PROCS
+fi
+
+if [ -f $PROCFILE_DB ]
+then
+    while read PID rest
+    do
+        kill -TERM $PID
+        echo "terminate $PID ($rest)"
+    done < $PROCFILE_DB
+    rm -f $PROCFILE_DB    
+fi
+
+# remove all remaining dialogserver pipes
+
+for pipe in `echo /tmp/dialog*`
+do
+    echo "remove $pipe"
+    rm -f $pipe
+done
+    
+exit 0

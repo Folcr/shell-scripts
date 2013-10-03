@@ -1,0 +1,12 @@
+#
+# script to start CDE (default directory is toolbox)
+#
+if (test $# -ne 0) then
+   System=$1
+else
+   System="common"
+fi
+echo $System
+export IPK_BASEPORT=1802
+/local/Tools/StP/binsun4/vmcnav -p /local/projects/toolbox -s $System &
+

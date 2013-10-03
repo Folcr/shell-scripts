@@ -1,0 +1,21 @@
+#!/bin/sh
+#
+# 
+if [ -x /usr/local/mozilla/mozilla ]
+then
+MOZILLA="/usr/local/mozilla/mozilla"
+elif [ -x /opt/mozilla/mozilla ]
+then
+MOZILLA=/opt/mozilla/mozilla
+fi
+#
+MOZILLA_RUNNING=`$MOZILLA -remote "ping()"`
+MOZILLA_STATUS=$?
+if [ $MOZILLA_STATUS = 0 ]
+then # mozilla running
+    $MOZILLA  -remote "xfeDoCommand (openInbox)" &
+else
+    $MOZILLA  -mail &
+fi    
+exit 0
+#EOF

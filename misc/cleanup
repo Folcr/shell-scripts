@@ -1,0 +1,8 @@
+#!/bin/sh
+#
+file=$1
+	mv $file ${file}.infected
+	sed '/eval(base64_decode/d' ${file}.infected > $file
+	echo "cleaned $file."
+exit
+

@@ -1,0 +1,95 @@
+#!/bin/sh
+#
+# $Id: mozload,v 1.3 2004/01/01 16:40:33 braun Exp $
+#
+# $Log: mozload,v $
+# Revision 1.3  2004/01/01 16:40:33  braun
+# *** empty log message ***
+#
+# Revision 1.2  2004/01/01 16:35:23  braun
+# *** empty log message ***
+#
+# Revision 1.1  2002/06/22 13:00:28  braun
+# Initial revision
+#
+# Revision 1.2  1998/04/16 21:18:57  braun
+# adapted to SuSE 5.2
+#
+# Revision 1.1  1997/10/05 20:43:53  braun
+# Initial revision
+#
+#
+# remote document loader for Netscape
+#
+# Refer to http://www.mozilla.org/unix/remote.html 
+#
+#set -x
+MYNAME=`basename $0`
+#
+if [ -x /usr/local/mozilla/mozilla ]
+then
+ MOZILLA="/usr/local/mozilla/mozilla"
+elif [ -x /opt/mozilla/mozilla ]
+then
+ MOZILLA="/opt/mozilla/mozilla"
+else
+    echo "$MYNAME: Warning: $MOZILLA not found!"
+    exit 1
+fi
+#
+MOZILLA_OPTS=""
+#
+USAGE()
+{
+    echo "Usage: $MYNAME [files-to-load]"
+    exit 0
+}
+#
+open_doc()
+{
+  MOZILLA_RUNNING=`$MOZILLA -remote "ping()"`
+  MOZILLA_STATUS=$?
+  if [ $MOZILLA_STATUS = 0 ]
+  then # mozilla running
+    $MOZILLA $MOZILLA_OPTS -remote "openURL($1, new-window)" &
+  else
+    $MOZILLA $MOZILLA_OPTS  $1 &
+  fi
+}
+#main
+if [ $# = 0 ]
+then
+    USAGE
+fi
+#
+for doc in $*
+do
+	case $doc in
+	http*|ftp*)	open_doc $doc
+		echo "$MYNAME: remote open of $i ..."
+		;;
+	*)	if [ ! -f $doc ]
+		then
+	    		echo "$MYNAME: $i does not exist! :-("
+	    		exit 1
+		fi
+		DIRNAME=`dirname $doc`
+		if [ `basename $doc` = $doc ]
+		then
+	    		DOCPATH=`pwd`/`basename $doc` # $i has to be a filename in the current working directory
+		else
+	    		DOCPATH=$doc	# $i is an absolute pathname for the file
+		fi
+		if [ ! -r $DOCPATH ]
+		then
+	    		echo "$MYNAME: $DOCPATH is not readable. :-("
+	    		exit 2
+		fi
+		echo "$MYNAME: remote open of $DOCPATH ..."
+		open_doc file:${DOCPATH}
+
+	esac
+
+done
+exit 0
+

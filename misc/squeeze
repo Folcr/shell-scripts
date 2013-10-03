@@ -1,0 +1,50 @@
+#!/bin/sh
+# $Id$
+#
+# echo "18:4d:1e:71:f7:84 power ?" | socat -T1 -,ignoreeof   TCP4:automatix:9090 | cut -d " " -f3 
+#
+set -x
+#
+#Parameter:
+PLAYER_ID="18:4d:1e:71:f7:84"  # Softsqueeze
+#PLAYER_ID="00:04:20:06:78:ef"  # Squeezebox3
+SQUEEZECENTER="192.168.178.10"
+REQUEST="show line1:Hello%20World line2:Second%20line duration:3 centered:1" 
+#-------------------------------
+info() {
+   echo "${IDENT} [info] $@" >&2
+}
+error() {
+   echo "${IDENT} [errror] $@" >&2
+}
+warning() {
+   echo "${IDENT} [warning] $@" >&2
+}
+#--------------------------------------------
+
+#
+check_online()
+{
+  return=`echo "${PLAYER_ID} power ?" | socat -T1 -,ignoreeof  TCP4:${SQUEEZECENTER}:9090 | cut -d " " -f3`  
+  if [ $return = 0 ] 
+    then
+	info "offline"
+        return 0
+    else
+	info "online"
+        return 1
+    fi   
+}
+
+TEMP=$1
+HYDR=$2
+check_online
+if [ "$?" -eq "0" ]
+then
+	echo "${PLAYER_ID} show line2:${TEMP}%B0%20${HYDR}%25 duration:20 font:huge centered:1" | socat -d  - TCP4:${SQUEEZECENTER}:9090 
+else
+	warning "Squeezebox online. No change."
+	exit 1
+
+fi
+exit 0

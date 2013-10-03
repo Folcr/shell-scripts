@@ -1,0 +1,17 @@
+#!/bin/sh
+# module:         tef_halt
+# version:        1.1
+# last modify:    95/11/13 14:54:21
+#
+# @(#)tef_halt	1.1 95/11/13 14:54:21   Volker Braun
+#
+# set -x
+#
+# let the zugangssteuerung return to its login window
+# to logout all users first, before terminating
+sleep 2 # be fair to the zugangssteuerung
+ps -ax | grep zugangs_steuerung | grep -v grep > /tmp/ps.$$
+read PID rest </tmp/ps.$$
+kill -TERM $PID
+rm -f /tmp/ps.$$
+exit 0

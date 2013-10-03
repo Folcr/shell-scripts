@@ -1,0 +1,13 @@
+#!/bin/sh
+# using pbmplus-tools: /local/Tools/pbmplus/
+# convert a PC PCX-picture into a pnm-picture
+# and this pnm-picture into UNIX xwd-picture
+#
+PBMTOOLS=/usr/local/netpbm
+for i
+    do
+        XWDNAME=`basename $i .pcx`.xwd
+        $PBMTOOLS/pcxtoppm $i | \
+        $PBMTOOL/pnmtoxwd >$XWDNAME
+    done
+        

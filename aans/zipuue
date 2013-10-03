@@ -1,0 +1,16 @@
+#!/bin/sh 
+# module:         %M%
+# version:        %I%
+# last modify:    %E% %U%
+#
+# %W% %E% %U% %Y% %Q%, Volker Braun.
+#
+#set -x
+#exec >/tmp/$0.$$ 2>&1
+#
+for i in $*
+do
+    gzip -v $i
+    uuencode "$i.gz" "$i.gz" >"$i.gz.uue"
+done
+#

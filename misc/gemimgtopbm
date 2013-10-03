@@ -1,0 +1,10 @@
+#!/bin/sh
+# convert GEM Images (ATARI) to Portable Bitmap Format
+set -x
+for image in $*
+do
+	ImageName=`basename $image .img`
+	/usr/X11R6/bin/gemtopbm $image >${ImageName}.pbm
+done
+#
+exit 0

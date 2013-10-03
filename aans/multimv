@@ -1,0 +1,38 @@
+#!/bin/sh 
+# module:         multimv
+# version:        1.1
+# last modify:    96/07/16 11:50:45
+#
+# @(#)multimv	1.1 96/07/16 11:50:45  , Volker Braun.
+#
+#set -x
+#exec >/tmp/$0.$$ 2>&1
+#
+MYNAME=`basename $0`
+#
+USAGE()
+{
+    echo "Usage:"
+    echo "$MYNAME [old extension] [new extension]"
+    echo
+    echo "$MYNAME moves all files with the [old extension]" 
+    echo "to files with identical basename with [new extension]." 
+    echo "e.g.: $MYNAME doc ilf"
+    echo "moves all ./*.doc files to ./*.ilf"
+    echo
+ 
+    exit 0
+}
+#
+if [ $# != 2 ]
+then
+    USAGE
+fi
+#
+for i in `find . -name "*.$1" -print`
+do
+	echo "$MYNAME: moving $i"
+	mv $i `basename $i $1`$2
+done
+exit 0
+#

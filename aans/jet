@@ -1,0 +1,49 @@
+#!/bin/sh
+# module:         jet
+# version:        1.2
+# last modify:    96/06/14 09:29:43
+#
+# @(#)jet	1.2 96/06/14 09:29:43  , Volker Braun.
+#
+# starts jetedit with the given file in background
+# or asks to create an empty file with the given name
+#
+EDIT_TMP="/tmp/edit_$$"
+MY_EDIT="/usr/dt/bin/dtpad"
+#
+CREATE_FILE()
+{
+    if touch $1
+    then
+        chmod 664 $1
+        echo "$1 wird angelegt!"
+        ls -l $1
+    else
+        echo "$1 konnte nicht angelegt werden."
+        exit 1
+    fi   
+}
+
+if [ $# = 0 ]
+then
+    CREATE_FILE $EDIT_TMP
+    $MY_EDIT $EDIT_TMP &
+    echo "$EDIT_TMP wird geladen ..."
+    exit 0
+else
+    for i in $*
+        do
+            if [ ! -f $i ]
+            then
+                echo "$i existiert nicht - neu anlegen? [j/n][Return]"
+                read IN
+                case $IN in
+                    y | Y | j | J)	CREATE_FILE $i;;
+                    *)              exit 0;;
+                esac
+            fi
+            $MY_EDIT $i &
+            echo "$i wird geladen ..."
+        done
+fi
+exit 0

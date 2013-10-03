@@ -1,0 +1,48 @@
+#!/bin/sh
+# module:         videotoc3i
+# version:        1.2
+# last modify:    95/05/24 17:32:55
+#
+# @(#)videotoc3i	1.2 95/05/24 17:32:55  
+#
+# wandelt 24bit rasterfile in 8bit c3i-colormap xwdfile
+#
+DIALOGCMD=/tef/bin/dialogcmd
+TMP_IMAGE=/tmp/grabfile.$$
+
+echo $0: parameter1: $1 # path of the original grabbed file
+echo $0: parameter2: $2 # name of the user specified file
+echo $0: parameter3: $3 # flag: raw, dither or quant
+
+if [ $# != 3 ]
+then
+     exit 2
+fi
+if [ x$TBD_IMAGE_DIR = x ]
+then
+        TBD_IMAGE_DIR=.
+fi
+
+cp $1 $TMP_IMAGE  	# save actual grabbed image
+rm -f $1  		# remove the original grabbed file
+
+if   [ $3 = dither ]
+then
+    rasttopnm $TMP_IMAGE | ppmdither | pnmtoc3i > $TMP_IMAGE.out
+elif [ $3 = quant ]
+then
+    rasttopnm $TMP_IMAGE | ppmquant -map $TBD_IMAGE_DIR/data/c3i.quant | \
+       pnmtoc3i > $TMP_IMAGE.out
+fi
+#
+mv  $TMP_IMAGE.out $TBD_IMAGE_DIR/data/Images/$2
+rm -f $TMP_IMAGE.out	# remove the converted grabbed file
+
+if [ -f $TBD_IMAGE_DIR/data/Images/$2 ]
+then
+    $DIALOGCMD sav general_s_msg "Videodump is ready."
+    exit 0
+else
+    $DIALOGCMD sav general_s_msg "Error while Videodump."
+    exit 1
+fi

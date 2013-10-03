@@ -1,0 +1,13 @@
+#!/bin/sh
+# using pbmplus-tools: /local/Tools/pbmplus/
+# input: a colored full screenshot from a 1150 x 900 resolution
+# output: a DinA4 Postscript file 
+# action: convert a xwd-picture into PostScript-Format
+#
+for i
+    do
+        PSNAME=`basename $i .xwd`.ps
+        /local/Tools/pbmplus/bin/xwdtopnm $i | \
+        /local/Tools/pbmplus/bin/pnmtops -w 8.7 -h 11.7 -s 0.61 >$PSNAME
+    done
+        

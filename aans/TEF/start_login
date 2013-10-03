@@ -1,0 +1,219 @@
+#!/bin/sh
+# module:         start_login
+# version:        1.9
+# last modify:    95/06/22 09:17:41
+#
+# @(#)start_login	1.9 95/06/22 09:17:41  
+#
+# Script zum Starten der TEF-Oberflaeche
+#
+set -x
+# global variables
+ROOT=/tef
+TEF=$ROOT
+
+
+# wegen cores
+cd $TEF/tmp
+
+HOST=`hostname`
+export HOST
+umask 000
+CMD=`basename $0`
+LOG=login.$CMD.$HOST
+
+if [ -f $TEF/tmp/$LOG.2 ]; then
+  rm $TEF/tmp/$LOG.2
+fi
+if [ -f $TEF/tmp/$LOG.1 ]; then
+  mv $TEF/tmp/$LOG.1 $TEF/tmp/$LOG.2
+fi
+if [ -f $TEF/tmp/$LOG ]; then
+  mv  $TEF/tmp/$LOG $TEF/tmp/$LOG.1
+fi
+
+# exec without command does only the output redirection:
+# stdout to file, stderr to stdout
+exec > $TEF/tmp/$LOG  2>&1
+#--------------------------------------------------------
+#  - Variable fuer TEF ( teilweise Maschinenabhaengig )
+
+TZ=GMT
+export TZ
+
+
+echo Command: $CMD
+
+case $CMD in
+	start_ap1) SCREEN_RIGHT=0; rdate tefdb; TEFHOST=ap1;;
+	start_ap2) SCREEN_RIGHT=0; rdate tefdb; TEFHOST=ap2;;
+	start_com) SCREEN_RIGHT=0; rdate tefdb; TEFHOST=com;;
+	start_db)  SCREEN_RIGHT=0; TEFHOST=db;;
+	start_satu)  SCREEN_RIGHT=0;;
+	*)	echo 'unkown hostname cmd $$CMD (hostname=$$HOST)' ; exit 1;;
+esac
+export SCREEN_RIGHT TEFHOST
+
+# setzen der env-Variablen
+. /tef/lib/profile
+
+PBMPLUS=/usr/local/Tools/pbmplus
+PATH=$TEF/bin:/X/bin:/usr/bin:/usr/ucb:$FMHOME/bin:$ORACLE_HOME/bin:$PBMPLUS/bin
+ 
+#EIFELHOST=tefap2
+#EIFELHOST=mx300
+EIFELHOST=eifelssr
+
+export PATH EIFELHOST 
+
+# it is possible, that tefdb plus one other tefhost is started on a single machine
+if [ $TEFHOST = db ]
+then
+    PROCFILE=/var/tmp/TEF_db_login_PIDS
+else
+    PROCFILE=/var/tmp/TEF_login_PIDS
+fi
+  
+rm -f $PROCFILE
+touch $PROCFILE
+#--------------------------------------------------------
+#  - Variable fuer TEF und Hintergrundprozesse ( teilweise Maschinenabhaengig )
+# l_aufz_verwaltung muß nur auf Maschinen laufen,
+# auf denen aufzeichnende Apps gestartet werden.
+#
+
+case $CMD in
+	start_ap1) ;;
+	start_ap2) PATH=$PATH:/var/export/pub/vitec/bin:/var/export/pub/vitec/Vitec.NEW 
+		   export PATH 
+		;;
+	start_com) # lokale Aufzeichnungsverwaltung musz vor aufzeichnenden Apps laufen
+                l_aufz_verwaltung &
+                LAV_PID=$!
+                echo $LAV_PID LAV_PID >> $PROCFILE
+		z_alarm_verwaltung &
+		ZAV_PID=$!
+		echo $ZAV_PID ZAV_PID >> $PROCFILE
+		link1_com &
+		LINK1_COM_PID=$!
+		echo $LINK1_COM_PID LINK1_COM_PID >> $PROCFILE
+		;;
+
+	start_db) reset_session # remove the entries of current users 
+                z_aufz_verwaltung &
+                ZAV_PID=$!
+		echo $ZAV_PID ZAV_PID >> $PROCFILE
+                RECORDING_DEBUG=1
+                export RECORDING_DEBUG
+                l_aufz_verwaltung &
+                LAV_PID=$!
+                echo $LAV_PID LAV_PID >> $PROCFILE
+		TIMEDEBUG=0
+		TRACKDEBUG=0
+		export TIMEDEBUG TRACKDEBUG
+		link1_db &
+		LINK1_DB_PID=$!
+		echo $LINK1_DB_PID LINK1_DB_PID >> $PROCFILE
+		POLYLINE_DEBUG=1
+                export POLYLINE_DEBUG
+                TbcGetSendLine &
+                GETSENDLINE_PID=$!
+                echo $GETSENDLINE_PID GETSENDLINE_PID >> $PROCFILE
+		exit 0
+		;;
+esac
+
+# start the processes, which run on all hosts
+#--------------------------------------------
+
+# Starten des X-Window Servers, Dialogmanagers und Zugangssteuerung
+#--------------------------------------------------------
+#
+rm -f /tmp/dialog_fifo*
+
+if [ $HOST = "tartaros" -a $CMD = "start_com" ]
+then
+	CMD=start_tartaros
+	PATH=$PATH:/var/export/pub/vitec/bin:/var/export/pub/vitec/Vitec.NEW 
+	export PATH
+fi
+cd /tef/tmp/xrfx
+case $CMD in
+#	start_ap2|start_tartaros) xinit /X/bin/xconsole -iconic -- /usr/local/rfx/bin/Xrfx-tv -sunsupport -fp /X/lib/X11/fonts/75dpi,/X/lib/X11/fonts/100dpi,/X/lib/X11/fonts/misc -co /X/lib/X11/rgb & ;;
+#	start_ap2) xinit /X/bin/xconsole -iconic -- /X/bin/Xrfx -sunsupport -dev /dev/rfx0:/dev/cgsix0 -fp /X/lib/X11/fonts/75dpi,/X/lib/X11/fonts/100dpi,/X/lib/X11/fonts/misc & ;;
+#	*)	 xinit /X/bin/xconsole -iconic  -- /X/bin/Xrfx3.2 -sunsupport -fp /X/lib/X11/fonts/75dpi,/X/lib/X11/fonts/100dpi,/X/lib/X11/fonts/misc &;;
+
+       *)       xinit /X/bin/xconsole -iconic  -- /X/bin/Xrfx-tv -sunsupport -fp /X/lib/X11/fonts/75dpi,/X/lib/X11/fonts/100dpi,/X/lib/X11/fonts/misc -co /X/lib/X11/rgb &
+        ;;
+esac
+# for all workstations:
+XINIT_PID=$!
+echo $XINIT_PID XINIT_PID >> $PROCFILE
+
+cd /tef/bin
+sleep 3
+
+# C3Icolor is forking, so the PID cannot be examined from here!
+case $CMD in
+       start_ap1) C3Icolour 0
+                  C3Icolour 1
+                  ;;
+       start_ap2) ;;
+        *)        ;;
+esac
+
+# sollte eigentlich in von selbst passieren
+. $XINITRC
+
+# for all workstations:
+/tef/bin/mwm &
+MWM_PID=$!
+echo $MWM_PID MWM_PID >> $PROCFILE
+
+# start the processes, which run on all hosts and need X
+#-------------------------------------------------------
+
+
+DEBUG=0
+export DEBUG
+
+cd /tef/tmp/diserv
+case $CMD in
+	start_ap1) diserv -trace /tef/lib/replay/data1 ;;
+	start_ap2) diserv -trace /tef/tmp/diserv.trace.ap2 ;;
+	*)	 diserv  ;;
+esac
+cd /tef/bin
+
+# Starten von Framemaker/viewer als Hypertexthilfesystem
+$TEF/bin/start_frame.sh&
+
+dialogcmd << _EOF
+open l:/tef/lib/links.fm
+open r:/tef/lib/rechts.fm
+open r:/tef/lib/login.fm
+savi links_show 0
+savi rechts_show 0
+_EOF
+sleep 3
+
+# start the processes, which run on all hosts and need X and the UI
+#------------------------------------------------------------------
+tv_manager -display :0.$SCREEN_RIGHT &
+TV_MANAGER_PID=$!
+echo $TV_MANAGER_PID TV_MANAGER_PID >> $PROCFILE
+
+# make the console writeable for all, because Lisp (TISFASS) gets redirected to it
+chmod 666 /dev/console
+
+#------------------
+# Aufruf des Loginvorganges
+
+zugangs_steuerung
+
+#--- Ende !!!
+
+stop_login
+
+
+exit 0

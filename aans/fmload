@@ -1,0 +1,69 @@
+#!/bin/sh 
+# module:         fmload
+# version:        1.3
+# last modify:    96/07/17 09:02:36
+#
+# @(#)fmload	1.3 96/07/17 09:02:36  , Volker Braun.
+#
+# remote document loader for Framemaker
+#
+# interface to Framemaker's docclient
+# Usage: fmload [Framemakerdocuments]
+#
+# IMPORTANT: Framemaker must be already started.
+# Refer to docclient for detailed description.
+#
+#set -x
+MYNAME=`basename $0`
+#
+if [ x$FMHOME = x ]
+then
+    FMHOME=$HOME
+fi
+DOCCLIENT=$FMHOME/bin/docclient
+# test if docclient is available 
+if [ ! -x $DOCCLIENT ]
+then
+    echo "$MYNAME: Warning: $DOCCLIENT not found!"
+    exit 1
+fi
+#
+USAGE()
+{
+    echo "Usage: $MYNAME [Framemakerdocuments-to-load]" 
+}
+#
+if [ $# = 0 ]
+then
+    USAGE
+fi
+#
+for i in $*
+do
+if [ ! -f $i ]
+then
+    echo "$MYNAME: $i does not exist! :-("
+    exit 1
+fi    
+DIRNAME=`dirname $i`
+if [ `basename $i` = $i ]
+then  
+    DOCPATH=`pwd`/`basename $i` # $i has to be a filename in the current working directory
+else
+    DOCPATH=$i	# $i is an absolute pathname for the file
+fi
+if [ ! -r $DOCPATH ]
+then
+    echo "$MYNAME: $DOCPATH is not readable. :-("
+    exit 2
+fi
+echo "$MYNAME: remote open of $DOCPATH..." 
+$DOCCLIENT >/dev/null <<_EOF
+O
+$DOCPATH
+q!
+_EOF
+    
+done
+exit 0
+

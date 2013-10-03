@@ -1,0 +1,13 @@
+#!/bin/sh 
+# $Id: zipuuemail,v 1.2 1999/11/05 09:18:06 root Exp $
+#
+#set -x
+#exec >/tmp/$0.$$ 2>&1
+#
+# $1: file to send
+# $2: mail receiver
+#
+gzip -c $1 |\
+ uuencode "$1.gz" |\
+  mail -s "$1.gz" $2
+#

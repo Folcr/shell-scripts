@@ -1,0 +1,82 @@
+awk ' BEGIN{ BLANKS = "        " }
+	{	if (NR == 1)
+		{
+			i = split(p, pos) + 1;
+			pos[i] = 999;
+			subvar = substr(BLANKS, 1, pos[1] - 1);
+			s = sprintf("%s%s", subvar, $0); j = 2;
+			next;
+		}
+		aktpos = length(s);
+		while (aktpos >= pos[j] - 1) j++;
+		if ((j < i) && ((aktpos + length($0)) < 78))
+		{
+			subvar = substr(BLANKS, 1, pos[j] - aktpos - 1);
+			s = sprintf("%s%s%s", s, subvar, $0);
+			j++;
+		}
+		else
+		{
+			printf("%s\n", s);
+			subvar = substr(BLANKS, 1, pos[1] - 1);
+			j = 2; s = sprintf("%s%s", subvar, $0);
+		}
+	}
+	END { printf("%s\n", s); }' p="$1" $2			
+
+# Erzeuge Liste der Objektdateien im Format fuer Makefile
+sed -e 's/.c *$/.o/' < $1 > t.objlist
+
+p.format '1 13 25 37 49' t.objlist | sed -e 's/^/	/
+                                     s/$/ \\/
+                                     $s/\\//' > t.objects
+
+                                     
+echo -e "OBJECTS=\\" > $2
+
+cat t.objects >> $2
+echo -e "" >> $2
+
+egrep -l '^*main.*\(.*\)' `cat $1` > t.mainfiles
+
+if test `wc -l < t.mainfiles` -ne 1
+then 
+   echo Hauptprogramm \(main\) kann nicht identifiziert werden!
+   exit 1
+fi
+
+hpname=`cat t.mainfiles`
+hpnamex=`basename $hpname .c`
+
+echo -e "$hpnamex:\t\$(OBJECTS)" >> $2
+echo -e "\tcc \$(OBJECTS) -o $hpnamex\n" >> $2
+
+for i in `cat $1`						# Schleife ueber alle Quelldateien
+do
+   j=`basename $i .c`				# Entfernen des Suffixes '.c'
+   echo -e "$j.o: $j.c \\" >> $2	# Anfuegen Zeile an Makefile
+
+   # Ermitteln der Namen der Header-Dateien
+   grep '^#include *"' $i | sed -e 's/^.* "//
+                            s/"//' > h.$j
+   # Aufbereiten der Namen der Header-Dateien wie oben bei
+   # Objektdateien sowie Anfuegen an Makefile
+   p.format '1 13 25 37 49' h.$j | sed -e 's/^/	/
+                                   s/$/ \\/
+                                   $s/\\//' >> $2
+done
+
+for i in `cat $1`
+do
+   j=`basename $i .c`				# Entfernen des Suffixes .c
+   rm h.$j								# Loeschen der temporaeren Datei
+done
+
+rm t.objlist
+rm t.objects
+rm t.mainfiles
+
+# NOTE:
+# In Zeile 3 und 27 sollten die 8 Spaces durch ein TAB-Zeichen
+# ersetzt werden!		Artur Lojewski
+

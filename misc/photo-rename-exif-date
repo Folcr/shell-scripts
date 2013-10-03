@@ -1,0 +1,44 @@
+#!/bin/sh
+#
+#set -x
+#
+# what files are we looking for?
+P_EXTENSION="jpg"
+# locate the 'jhead' executable
+JHEAD="/usr/bin/jhead"
+#
+#-----do not edit below this line-----------
+#
+IDENT=`basename $0`
+DIRECTORY=`pwd`
+DTITLE=`basename $DIRECTORY`
+TITLE="Index of ${DTITLE}"
+#-------------------------------
+info() {
+   echo "${IDENT} [info] $@" >&2
+}
+error() {
+   echo "${IDENT} [errror] $@" >&2
+}
+warning() {
+   echo "${IDENT} [warning] $@" >&2
+}
+#-------------------------------
+if [ ! -x $JHEAD ]
+then
+	error "could not execute \"JHEAD\". Exit 1"
+	exit 1
+fi
+if [ $# != 0 ]
+then
+	P_EXTENSION="$1"
+fi
+#--------------------------------------------
+# MAIN
+#-----
+#files to be renamed according to the exif header "DateTimeOriginal" field
+#This will rename files matched by $EXTENSION according to YYYYMMDD-HHMMSS
+$JHEAD -nf%Y%m%d-%H%M%S *.$P_EXTENSION
+#
+exit 0
+# EOF

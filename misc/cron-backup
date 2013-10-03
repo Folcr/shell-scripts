@@ -1,0 +1,35 @@
+#!/bin/sh
+# $Id: cron-backup,v 1.1 2004/11/14 11:07:26 root Exp root $
+# VOB: 09.10.2004
+#set -x
+#
+info()
+{
+   logger -t "${SCRIPT}[$$]" $*
+}
+   
+error()
+{
+        logger -p user.err -t "${IDENT}[$$]" "error: $*"
+		exit 1
+}
+cd /home
+for user in braun 
+do
+	DATE=`date +%Y-%m-%d.%H%M`
+	TARBALL="/misc/backup/${user}-daily-${DATE}.tar.bz"
+	FLAG="/home/${user}/.dump-daily"
+	#
+	tar cvjf $TARBALL --newer=${FLAG}  ./${user}
+	if [ $? = 0 ]
+	then
+		touch /home/${user}/.dump-daily
+        chown ${user}:${user} $TARBALL
+        chmod 640 $TARBALL
+        info "backup for $user done."
+    else
+        error "backup for $user failed."
+	fi
+done
+#EOF
+

@@ -1,0 +1,39 @@
+#!/bin/sh
+# module:         stop_application
+# version:        1.9
+# last modify:    95/05/24 14:50:33
+#
+# @(#)stop_application	1.9 95/05/24 14:50:33  
+#
+# Script zum Stoppen der TEF login-Programme
+#
+
+#dialogcmd << _EOF
+#savi recording_s_enable 0
+#savi simul_s_enable 0
+#savi eifel_s_enable 0
+#_EOF
+
+# terminate TISFASS at logout (if necessary)
+/tef/bin/stop_tisfass.sh&
+
+PROCFILE=/var/tmp/TEF_app_PIDS
+
+if [ -f $PROCFILE ]
+then
+    while read PID rest
+    do
+        kill -TERM $PID
+        # if the terminated process has left his FIFO, remove it!
+        if [ -f /tmp/dialog_fifo_$PID ]
+        then
+            /tef/bin/dialogcmd fifoclose $PID
+            echo "FIFO from $PID ($rest) closed."
+        fi
+    done < $PROCFILE
+    
+    # broadcast, that the applications are already terminated
+    rm -f $PROCFILE
+fi
+
+exit 0

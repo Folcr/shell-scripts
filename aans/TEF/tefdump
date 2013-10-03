@@ -1,0 +1,23 @@
+#!/bin/sh
+#
+if [ "$1" = 0 -a "$SCREEN_RIGHT" = 0 ]
+then
+     DUMP_SCREEN=1
+elif [ "$1" = 0 -a "$SCREEN_RIGHT" = 1 ]
+then
+     DUMP_SCREEN=0
+elif [ "$1" = 1 -a "$SCREEN_RIGHT" = 0 ]
+then
+     DUMP_SCREEN=0
+else DUMP_SCREEN=1
+fi
+
+host=`hostname`
+if [ $host = "tefap2" ]
+then
+   if [ $DUMP_SCREEN = 1 ]
+   then
+      exit 0
+   fi
+fi      
+/X/bin/xwd -root -display :0.$DUMP_SCREEN | xwdtopnm | ppmtopgm | pnmtops -w 8.27 -h 11.7 -s 0.64 | lpr -h -s -Ptef_lp

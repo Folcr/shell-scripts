@@ -1,0 +1,13 @@
+#!/bin/sh
+# using pbmplus-tools: /opt/local/netpbm
+# convert a xwd-picture into a pnm-picture
+# and this pnm-picture into pcx-picture for the PC-Fuzzies
+#
+BIN=/opt/local/netpbm
+for i
+    do
+        PCXNAME=`basename $i .xwd`.pcx
+        $BIN/xwdtopnm $i | \
+        $BIN/ppmtopcx >$PCXNAME
+    done
+        

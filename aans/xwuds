@@ -1,0 +1,5 @@
+#!/bin/sh
+for i
+    do
+        xwud -in $i&
+    done

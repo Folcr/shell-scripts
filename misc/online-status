@@ -1,0 +1,50 @@
+#!/bin/sh
+# Volker M. Braun, <volker.m.braun@gmx.de>
+#
+# $Id: tgeb,v 1.10 2002/05/16 19:10:09 braun Exp braun $
+#
+#
+#
+#set -x
+##########################################
+
+###########################################
+#
+SCRIPT=`basename $0`
+#
+info()
+{
+   logger -t "${SCRIPT}[$$]" $*
+}
+error()
+{
+   logger -p user.err -t "${SCRIPT}[$$]" "ERROR: $*"
+}
+debug()
+{
+   logger -p user.debug -t "${SCRIPT}[$$]" $*
+}
+#
+MY_WAN_STATUS=`lynx -dump -auth=admin:melinchen -nolist http://automatix/doc/online.sht | tail --lines=+16   |head -n1 `
+#
+test -n "$MY_WAN_STATUS" || (error "could not get WAN Status."; exit -1;)
+#
+set -- $MY_WAN_STATUS
+WAN_STATUS=$1
+IP_ADDRESS=$2
+TX_PK=$3
+TX_RT=$4
+RX_PK=$5
+RX_RT=$6
+TIME=$7
+
+if [ "$WAN_STATUS" = "---" ]
+then
+    echo "offline"
+    exit 0
+else
+    info "online \[$IP_ADDRESS\] since $TIME."
+    echo "$WAN_STATUS $IP_ADDRESS $TX_PK $TX_RT $RX_PK $RX_RT $TIME"
+    exit 1
+fi
+#EOF

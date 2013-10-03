@@ -1,0 +1,10 @@
+#!/bin/sh
+#
+for i in $*
+do
+    #echo "$i"
+	NAME=`basename "$i" .mp3`
+	mpg123 -q -w - "$i" >"${NAME}.wav" &
+done
+#
+#EOF

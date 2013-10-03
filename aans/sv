@@ -1,0 +1,5 @@
+#!/bin/sh
+# Martin Kaul ATS/E
+# %Z% %M% Version: %I% at %D% %T%
+
+cleartool setview braun_vu

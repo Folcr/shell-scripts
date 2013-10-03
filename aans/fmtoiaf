@@ -1,0 +1,99 @@
+#!/bin/sh
+# module:         fmtoiaf
+# version:        1.2
+# last modify:    96/12/13 12:29:09
+#
+# @(#)fmtoiaf	1.2 96/12/13 12:29:09  , Volker Braun.
+#
+#set -x
+MYNAME=`basename $0`
+#
+USAGE()
+{
+    echo "Usage:"
+    echo
+    echo "$MYNAME [Framemaker files, ...]"
+    echo
+    echo "$MYNAME converts [Framemaker files, ...] to Interleaf ASCII format." 
+    echo
+    echo "FMHOME has to be set to the respective path,"
+    echo "according to the Version of the [Framefile]."
+    echo "e.g.: FMHOME=/usr/local/maker4.0"
+    echo
+ 
+    exit 0
+}
+#
+if [ $# -lt 1 ]
+then
+    USAGE
+fi
+#
+if [ x$FMHOME = x ]
+then
+    FMHOME=/usr/local/maker3.1
+fi
+#
+FMBATCH="$FMHOME/bin/fmbatch"
+
+if [ $MYNAME = fmtoiaf ]
+then
+	MIFTOXXX="$FMHOME/bin/miftoiaf"
+	XXX="iaf"
+else
+	MIFTOXXX="$FMHOME/bin/miftortf"
+	XXX="rtf"
+fi
+#
+BATCHFILE=/tmp/batch.$$
+#
+
+#
+if [ ! -x $FMBATCH ]
+then
+    echo "$0: $FMBATCH not found. :-("
+    exit 1
+fi
+#
+for i in $*
+do
+    if [ ! -r $i ]
+    then
+        echo "$0: $i does not exist or is not readable! :-("
+        exit 1
+    fi
+    # if a document is locked, fmbatch is unable to open it.    
+    if [ -f $i.lck ]
+    then
+        echo "$0: $i is locked ($i.lck exists)! :-("
+        exit 1
+    fi
+    
+    FMFILE=$i   
+    MIFFILE=`basename $i .doc`.mif
+    OUTFILE=`basename $i .doc`.$XXX
+    echo "$0: Using $FMBATCH to process $Framefile"
+    touch $BATCHFILE
+    echo "Open $FMFILE" >> $BATCHFILE
+    echo "SaveAs m $FMFILE $MIFFILE" >> $BATCHFILE
+    echo "Quit" >> $BATCHFILE
+    
+#
+    echo "$0: Starting fmbatch..."
+    echo ""
+    # <-v> is the verbose mode of fmbatch: all commands are echoed
+    $FMBATCH -v $BATCHFILE
+    FMB_RETURN=$?
+    echo ""
+    echo "$MYNAME: ...fmbatch ended with Status: $FMB_RETURN"
+    rm -f $BATCHFILE
+    
+    if [ -r $MIFFILE ]
+    then
+    	$MIFTOXXX $MIFFILE $OUTFILE
+    	rm -f $MIFFILE
+    fi
+done
+#
+exit 0
+

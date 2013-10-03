@@ -1,0 +1,33 @@
+#!/bin/sh 
+# module:         %M%
+# version:        %I%
+# last modify:    %E% %U%
+#
+# %W% %E% %U% %Y% %Q%, Volker Braun.
+#
+#TMPFILE=/tmp/`basename $0`.$$
+#set -x
+USAGE()
+{
+    echo "Usage:"
+    echo "$0 hostname [user]"
+    echo
+ 
+    exit 0
+}
+if [ $# = 0 ]
+then
+	USAGE
+elif [ $# = 1 ]
+then
+	_HOST=$1
+	_USER=$USER
+else [ $# = 2 ]
+	_HOST=$1
+	_USER=$2
+fi
+#
+xhost + $_HOST
+#
+xterm -n $1 -T "rlogin $_USER@$_HOST" -e rlogin -l $_USER $_HOST & 
+exit 0
