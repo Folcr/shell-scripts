@@ -37,8 +37,8 @@ fi
 # MAIN
 #-----
 #files to be renamed according to the exif header "DateTimeOriginal" field
-#This will rename files matched by $EXTENSION according to YYYYMMDD-HHMMSS
-$JHEAD -nf%Y%m%d-%H%M%S *.$P_EXTENSION
+#This will rename files matched by $EXTENSION according to YYYY-MM-DD_HH.MM.SS
+$JHEAD -nf%Y-%m-%d_%H.%M.%S *.$P_EXTENSION
 #
 exit 0
 # EOF
