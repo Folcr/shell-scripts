@@ -1,0 +1,18 @@
+#!/bin/bash
+# rsync mm-lab's external documents to my dropbox folder
+#set -x
+#
+DATE=`date +%Y-%m-%d_%H-%M-%S`
+SOURCE="/cygdrive/x/10_Projekte/Privinvest/13-021_ICSS-Moz/P_Abwicklung"
+DESTINATION="/cygdrive/c/Documents and Settings/Volker Braun/Dropbox/innovative/ICSS-Moz"
+LOG="$DESTINATION/$DATE.txt"
+EXCLUDES="*.URL"
+#
+echo -e "\nrsync started $DATE." >"$LOG"
+rsync.exe -av --delete --exclude="$EXCLUDES" "$SOURCE/10_Berichte" "$DESTINATION" >> "$LOG"
+rsync.exe -av --delete --exclude="$EXCLUDES" "$SOURCE/20_Anforderung" "$DESTINATION" >> "$LOG"
+rsync.exe -av --delete --exclude="$EXCLUDES" "$SOURCE/30_Systementwurf" "$DESTINATION" >> "$LOG"
+#
+exit 0
+#EOF
+

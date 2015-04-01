@@ -1,0 +1,16 @@
+#!/bin/bash
+# wrapper script to syncthing executable
+#set -x
+#
+DATE=`date +%Y-%m-%d_%H-%M-%S`
+IDENT=`basename $0`
+OUT="${IDENT}.out"
+ERR="${IDENT}.err"
+LOG="${IDENT}.log"
+#
+cd $USERPROFILE
+./bin/syncthing.exe -home="${LOCALAPPDATA}/Syncthing" 1>>$OUT 2>>$ERR &
+echo "$IDENT started at $DATE." >>$LOG
+exit 0
+#EOF
+

@@ -1,0 +1,1 @@
+E:\cygwin\bin\rsync.exe -avc --password-file=E:\cygwin\secret --delete "/cygdrive/e/VOB/My Truecrypt Volumes" "braun@automatix::backup/stunb005/vob/My Documents/"

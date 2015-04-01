@@ -1,0 +1,16 @@
+#!/bin/bash
+# rsync mm-lab's external documents to my dropbox folder
+#
+DATE=`date +%Y-%m-%d_%H-%M-%S`
+SOURCE="/cygdrive/k/Marketing/External_Documents/"
+DESTINATION="/cygdrive/c/Users/vbn/Dropbox/mm-lab_external_documents/"
+LOG=$DESTINATION/$DATE.txt
+EXCLUDES="*.URL"
+#
+OUTPUT=`rsync.exe -av --delete --exclude="$EXCLUDES" "$SOURCE" "$DESTINATION"`
+RET=$?
+#
+echo -e "$OUTPUT \nrsync exit with $RET at $DATE." > $LOG
+exit 0
+#EOF
+

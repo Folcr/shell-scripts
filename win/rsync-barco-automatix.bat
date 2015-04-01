@@ -1,0 +1,1 @@
+E:\cygwin\bin\rsync.exe -av --password-file=E:\cygwin\secret --delete "/cygdrive/e/Barco" braun@automatix::backup/stunb005/

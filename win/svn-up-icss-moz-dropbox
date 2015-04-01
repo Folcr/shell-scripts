@@ -1,0 +1,25 @@
+#!/bin/bash
+# svn update ICSS-Moz working copy on Dropbox
+#set -x
+#
+DATE=`date +%Y-%m-%d_%H-%M-%S`
+BASEDIR="/cygdrive/c/Documents and Settings/${USERNAME}/in-ownCloud/ICSS-Moz"
+WORKINGCOPY="$BASEDIR/P_Abwicklung"
+UPHISTORY="$BASEDIR/update-history.txt"
+LOG="$BASEDIR/$DATE.txt"
+MYTMP=`cygpath -u $tmp`
+#
+cd "$BASEDIR"
+for i in `ls 201*` 
+do
+	cat $i >>"$UPHISTORY"
+	mv $i "$MYTMP"
+done
+cd "$WORKINGCOPY"
+echo -e "\nsvn up started at $DATE." >"$LOG"
+svn.exe up >>"$LOG"
+#
+cat "$LOG" | email  -r mail.innovative-navigation.de -n VB -f volker.braun@innovative-navigation.de -s "ICSS-Moz ownCloud update" css-moz@integraland.pt,volker.braun@innovative-navigation.de
+#
+exit 0
+#EOF

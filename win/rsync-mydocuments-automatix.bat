@@ -1,0 +1,1 @@
+E:\cygwin\bin\rsync.exe -avz --password-file=E:\cygwin\secret --delete "/cygdrive/e/VOB/" "braun@automatix::backup/stunb005/vob/My Documents"
