@@ -24,6 +24,11 @@ warning() {
    echo "${IDENT} [warning] $@" >&2
 }
 #-------------------------------
+if [  $# = 1 ]
+then
+	P_EXTENSION="$1"
+fi
+#
 if [ ! -x $JHEAD ]
 then
 	error "could not execute \"JHEAD\". Exit 1"
