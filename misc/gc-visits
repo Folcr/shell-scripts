@@ -1,0 +1,46 @@
+#!/bin/bash 
+# $Id$
+#
+#
+set -x
+#
+MYPATH="/media/$USER/GARMIN/Garmin"
+MYFILE="geocache_visits.txt"
+GC="http://coord.info"
+#
+MYTEMP="/tmp/${MYFILE}"
+IDENT=`basename $0`
+#-------------------------------
+info() {
+   echo "${IDENT} [info] $@" >&2
+}
+error() {
+   echo "${IDENT} [errror] $@" >&2
+}
+warning() {
+   echo "${IDENT} [warning] $@" >&2
+}
+#--------------------------------------------
+# MAIN
+# without arguments, use today's date
+if [ $# = 1 ]
+then
+	DATE="$1"
+else
+	DATE=`date +%Y-%m-%d`
+fi
+# convert the text file format to unix style:
+iconv -f utf-16 -t utf-8 ${MYPATH}/${MYFILE} > ${MYTEMP}
+# search where to start the geocache finds
+STARTLINE=`grep -n --max-count=1 $DATE  ${MYTEMP} | cut --delimiter=":" --fields=1`
+# open the geocaching.com page for each logged geocache 
+tail --lines=+${STARTLINE} ${MYTEMP} | ( while read LINE
+do 
+	CODE=`echo $LINE | cut --delimiter="," --fields=1`
+# opens a file or URL in the user's preferred application
+        xdg-open "${GC}/${CODE}"
+done)
+#
+exit 0
+# EOF
+
