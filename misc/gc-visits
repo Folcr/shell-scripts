@@ -2,7 +2,7 @@
 # $Id$
 #
 #
-set -x
+#set -x
 #
 MYPATH="/media/$USER/GARMIN/Garmin"
 MYFILE="geocache_visits.txt"
