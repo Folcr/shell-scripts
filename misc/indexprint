@@ -24,6 +24,7 @@ GEOMETRY="120x120"
 EXTENSION="jpg"
 SUFFIX="_"
 NEW_EXTENSION="${SUFFIX}.${EXTENSION}"
+TN_FOLDER=".TN"
 #
 IDENT=`basename $0`
 DIRECTORY=`pwd`
@@ -51,13 +52,17 @@ cat << __HEADER__
 <HR>
 __HEADER__
 #--------------------------------------------------
+# Create Thumbnail Folder
+#---
+mkdir -p ./${TN_FOLDER}
+#--------------------------------------------------
 for IMAGE in $*
 do
 	# image name without extension
 	IMAGENAME=`basename ${IMAGE} .${EXTENSION}`
 	# cut the suffix from the name
 	TESTNAME=`basename ${IMAGENAME} .${SUFFIX}`
-	THUMBNAILNAME=${IMAGENAME}.${NEW_EXTENSION}
+	THUMBNAILNAME=${TN_FOLDER}/${IMAGENAME}.${NEW_EXTENSION}
 	if [ ${IMAGENAME} = ${TESTNAME} ]; then
     # if thumbnail exists and is newer than image
 		if [ -f ${THUMBNAILNAME} -a \

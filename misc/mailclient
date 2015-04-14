@@ -1,7 +1,0 @@
-#!/bin/sh
-#
-# 
-/opt/thunderbird/thunderbird &
-
-exit 0
-#EOF
